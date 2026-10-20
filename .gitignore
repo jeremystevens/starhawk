@@ -1,0 +1,10 @@
+# LOVE build output
+*.love
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
