@@ -56,21 +56,23 @@ set of assets for the whole "playing" state.
 | File | Size | Notes |
 | --- | --- | --- |
 | `ship.png` | 80x48, 5x2 grid of 16x24 | Player ship; the "spin" is all 10 frames cycled. Used on the title screen and as the gameplay ship (phase 3). |
-| `player_bullet.png` | 8x16 | Generated (`tools/generate_player_bullet.py`, gitignored); the default player weapon, cyan to match the ship. Not wired into gameplay yet. |
+| `player_bullet.png` | 8x16 | Generated (`tools/generate_player_bullet.py`, gitignored); the default (no-powerup) player weapon, cyan to match the ship. Phase 4. |
 | `enemy-small.png` | 32x16, 2 frames of 16x16 | Small enemy, idle wobble animation. Not wired into gameplay yet. |
 | `explosion.png` | 80x16, 5 frames of 16x16 | Enemy death animation. Not wired into gameplay yet. |
 | `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. Not wired into gameplay yet. |
 | `back.png` | 2048x1536 | User-provided source nebula/starfield image; kept for reference/reprocessing. |
 | `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. The phase 3 gameplay background. |
 | `title.mp3` | -- | Title screen music; loops, stops the instant Enter is pressed. |
-| `stage1.mp3` | -- | Gameplay music; loops at 40% volume so future sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
+| `stage1.mp3` | -- | Gameplay music; loops at 40% volume so sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
+| `norm_bullet.wav` | -- | Fires each shot of the normal (no-powerup) player bullet. Phase 4. |
+| `enemy1_bullet.wav` | -- | The first enemy type's shot sound. Not wired in yet -- phase 5. |
 
 ## Status
 
 - [x] Phase 1: Game skeleton
 - [x] Phase 2: Title screen
 - [x] Phase 3: Player ship
-- [ ] Phase 4: Shooting
+- [x] Phase 4: Shooting
 - [ ] Phase 5: Enemies
 - [ ] Phase 6: Collision & health/lives
 - [ ] Phase 7: Score & HUD

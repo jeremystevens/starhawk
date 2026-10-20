@@ -60,11 +60,35 @@ local music = love.audio.newSource("assets/stage1.mp3", "stream")
 music:setLooping(true)
 music:setVolume(0.4)  -- stays in the background so sound effects cut through
 
+-- Player bullets: the normal, no-powerup shot. Fire rate and other
+-- weapon variants (rapid fire, spread, laser beam) are phase 10's job.
+local BULLET_W, BULLET_H = 8, 16
+local BULLET_SPEED = 500
+local FIRE_COOLDOWN = 0.2  -- seconds between shots while held (5/sec)
+
+local bulletImage = love.graphics.newImage("assets/player_bullet.png")
+bulletImage:setFilter("nearest", "nearest")
+local bulletSound = love.audio.newSource("assets/norm_bullet.wav", "static")
+
+local bullets = {}
+local fireCooldownRemaining = 0
+
+local function fireBullet()
+    table.insert(bullets, {
+        x = shipX,
+        y = shipY - (SHIP_FRAME_H * SHIP_SCALE) / 2,
+    })
+    -- Cloned so overlapping shots don't cut each other's sound off.
+    love.audio.play(bulletSound:clone())
+end
+
 function playing.enter()
     shipX, shipY = WIDTH / 2, HEIGHT - 100
     shipVelX, shipVelY = 0, 0
     shipFrameIndex = 1
     shipFrameTimer = 0
+    bullets = {}
+    fireCooldownRemaining = 0
     music:play()
 end
 
@@ -125,6 +149,20 @@ function playing.update(dt)
     local halfH = (SHIP_FRAME_H * SHIP_SCALE) / 2
     shipX = math.max(halfW, math.min(WIDTH - halfW, shipX))
     shipY = math.max(halfH, math.min(HEIGHT - halfH, shipY))
+
+    fireCooldownRemaining = math.max(0, fireCooldownRemaining - dt)
+    if love.keyboard.isDown("space") and fireCooldownRemaining <= 0 then
+        fireBullet()
+        fireCooldownRemaining = FIRE_COOLDOWN
+    end
+
+    for i = #bullets, 1, -1 do
+        local bullet = bullets[i]
+        bullet.y = bullet.y - BULLET_SPEED * dt
+        if bullet.y < -BULLET_H then
+            table.remove(bullets, i)
+        end
+    end
 end
 
 function playing.draw()
@@ -139,6 +177,11 @@ function playing.draw()
         local brightness = 0.5 + 0.5 * math.sin(star.twinklePhase)
         love.graphics.setColor(1, 1, 1, brightness)
         love.graphics.rectangle("fill", star.x, star.y, star.size, star.size)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    for _, bullet in ipairs(bullets) do
+        love.graphics.draw(bulletImage, bullet.x - BULLET_W / 2, bullet.y - BULLET_H / 2)
     end
 
     love.graphics.setColor(1, 1, 1)
