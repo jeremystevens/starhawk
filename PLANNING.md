@@ -30,4 +30,12 @@ than a fixed-screen shooter.
 
 ## Status
 
-Not started -- this doc exists to plan before writing any game code.
+- [x] Phase 1: Game skeleton
+- [ ] Phase 2: Title screen
+- [ ] Phase 3: Player ship
+- [ ] Phase 4: Shooting
+- [ ] Phase 5: Enemies
+- [ ] Phase 6: Collision & health/lives
+- [ ] Phase 7: Score & HUD
+- [ ] Phase 8: Game over screen
+- [ ] Phase 9: Polish
