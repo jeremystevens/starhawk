@@ -66,6 +66,7 @@ set of assets for the whole "playing" state.
 | `stage1.mp3` | -- | Gameplay music; loops at 40% volume so sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
 | `norm_bullet.wav` | -- | Fires each shot of the normal (no-powerup) player bullet. Phase 4. |
 | `enemy1_bullet.wav` | -- | The first enemy type's shot sound. Not wired in yet -- deliberately saved for phase 6, alongside real player damage. |
+| `enemy1_explode.wav` | -- | Plays when an enemy1 is destroyed. Phase 5. |
 
 ## Status
 

@@ -137,9 +137,11 @@ for col = 0, EXPLOSION_FRAME_COUNT - 1 do
 end
 
 local explosions = {}
+local explosionSound = love.audio.newSource("assets/enemy1_explode.wav", "static")
 
 local function spawnExplosion(x, y)
     table.insert(explosions, { x = x, y = y, frameIndex = 1, frameTimer = 0 })
+    love.audio.play(explosionSound:clone())
 end
 
 function playing.enter()
