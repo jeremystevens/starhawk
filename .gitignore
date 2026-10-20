@@ -1,3 +1,8 @@
+# Dev-only tooling (asset generators, preview scripts) -- not part of
+# the shipped game, and includes Python which this project doesn't
+# otherwise use. Kept locally, not tracked in the repo.
+tools/
+
 # LOVE build output
 *.love
 
