@@ -578,12 +578,11 @@ function playing.update(dt)
 end
 
 function playing.draw()
-    local y = bgOffset - bgHeight
-    while y < HEIGHT do
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(bgImage, 0, y)
-        y = y + bgHeight
-    end
+    -- Plain black backdrop for stage 1 -- reads cleaner against the
+    -- structures/stars than the nebula image did. Later stages may bring
+    -- bgImage back once there's a real per-stage background system.
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, WIDTH, HEIGHT)
 
     love.graphics.setColor(1, 1, 1)
     for _, structure in ipairs(structures) do

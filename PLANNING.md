@@ -105,8 +105,14 @@ they have the dark-edge/mid/highlight shading pass.
   tall enough to take ~10s to fully scroll past, with a long gap between
   spawns so one piece fully clears before the next appears (distinct
   "flying past a structure, then open space again" stretches). Back
-  layer: drawn right after the nebula background, before stars or
-  anything else, so they never compete with gameplay.
+  layer: drawn first, before stars or anything else, so they never
+  compete with gameplay.
+- **Stage 1 backdrop**: plain black instead of the nebula image
+  (`bg_space.png`) -- tried both while chasing a "jittery" feeling that
+  turned out to be local machine lag, not the code, and ended up
+  preferring black against the structures/stars regardless. `bg_space.png`
+  stays loaded for a future stage once there's a real per-stage
+  background system (see the per-stage music future consideration).
 
 ## Assets
 
@@ -118,7 +124,7 @@ they have the dark-edge/mid/highlight shading pass.
 | `explosion.png` | 80x16, 5 frames of 16x16 | One-shot enemy death animation, plays once where an enemy is destroyed. Phase 5. |
 | `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. Not wired into gameplay yet. |
 | `back.png` | 2048x1536 | User-provided source nebula/starfield image; kept for reference/reprocessing. |
-| `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. The phase 3 gameplay background. |
+| `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. Loaded but not currently drawn -- stage 1 uses a plain black backdrop instead (see Decisions); kept for a later stage once there's a real per-stage background system. |
 | `enemy_bullet.png` | 8x16 | Generated (`tools/generate_enemy_bullet.py`, gitignored); red/orange to read as hostile vs. the player's cyan bolts. Phase 6. |
 | `player_explosion.png` | 80x16, 5 frames of 16x16 | Generated (`tools/generate_player_explosion.py`, gitignored) by recoloring explosion.png's exact shape to the player's cyan palette. Plays on player death. Phase 6. |
 | `structure_truss.png` | 96x900 | Generated (`tools/generate_background_structures.py`, gitignored); lattice girder. Decorative back-layer scenery, no collision. |
