@@ -31,7 +31,7 @@ than a fixed-screen shooter.
 ## Status
 
 - [x] Phase 1: Game skeleton
-- [ ] Phase 2: Title screen
+- [x] Phase 2: Title screen
 - [ ] Phase 3: Player ship
 - [ ] Phase 4: Shooting
 - [ ] Phase 5: Enemies
