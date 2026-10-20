@@ -19,6 +19,9 @@ than a fixed-screen shooter.
 8. **Game over screen** -- final score, restart prompt, back to title.
 9. **Polish** -- sound effects, particle/explosion effects, difficulty
    scaling, maybe a parallax starfield background.
+10. **Power-ups** -- rapid fire, spread shot, shield, and laser beam
+    pickups. Best implemented after shooting, enemies, and collision
+    (phases 4-6) are working, since a pickup is itself a collision event.
 
 ## Decisions
 
@@ -27,6 +30,27 @@ than a fixed-screen shooter.
   follow-up phase.
 - **Art**: pixel-art sprite sheets (generated PNGs), same approach as the
   pure-python-game-engine platformer hero -- not procedurally-drawn shapes.
+  In practice: some assets are hand-made/found (ship.png, enemy-small.png,
+  explosion.png, power-up.png) and some are generated via Python/tkinter
+  scripts in tools/ (player_bullet.png) -- both are fine, LOVE just loads
+  whatever PNG ends up in assets/.
+- **Power-up mapping** (power-up.png's 2x2 grid, by ring/gem color):
+  - Bright cyan gem, orange ring -> **Laser Beam** (matches the player
+    bullet's cyan color)
+  - Dark teal gem, orange ring -> **Shield**
+  - Orange gem, silver ring -> **Spread Shot**
+  - Red gem, silver ring -> **Rapid Fire**
+
+## Assets
+
+| File | Size | Notes |
+| --- | --- | --- |
+| `ship.png` | 80x48, 5x2 grid of 16x24 | Player ship; the "spin" is all 10 frames cycled. Used on the title screen; will be the gameplay ship in phase 3. |
+| `player_bullet.png` | 8x16 | Generated (`tools/generate_player_bullet.py`); the default player weapon, cyan to match the ship. |
+| `laser-bolts.png` | 32x32, 2x2 grid of 16x16 | Top row: round orb bolts (unused for now). Bottom row: elongated beam bolts -- the enemy-hit projectile shown in the enemy-destroyed.gif reference. |
+| `enemy-small.png` | 32x16, 2 frames of 16x16 | Small enemy, idle wobble animation. |
+| `explosion.png` | 80x16, 5 frames of 16x16 | Enemy death animation. |
+| `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. |
 
 ## Status
 
@@ -39,3 +63,4 @@ than a fixed-screen shooter.
 - [ ] Phase 7: Score & HUD
 - [ ] Phase 8: Game over screen
 - [ ] Phase 9: Polish
+- [ ] Phase 10: Power-ups
