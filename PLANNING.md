@@ -23,6 +23,16 @@ than a fixed-screen shooter.
     pickups. Best implemented after shooting, enemies, and collision
     (phases 4-6) are working, since a pickup is itself a collision event.
 
+## Future Consideration: Per-Stage Music (Not Yet a Phase)
+
+True to 90s arcade shmups, each stage should have its own music track
+rather than one loop for the whole game. Not implemented -- there's no
+stage/level progression system yet, and `states/playing.lua` currently
+just hardcodes `stage1.mp3`. Once stages are a real concept, `playing.lua`
+will need to know which stage it's on and load that stage's music (and
+probably its background/enemy set) accordingly, rather than one fixed
+set of assets for the whole "playing" state.
+
 ## Decisions
 
 - **Enemies**: start with a single enemy type (phase 5) to get spawning and
@@ -45,18 +55,21 @@ than a fixed-screen shooter.
 
 | File | Size | Notes |
 | --- | --- | --- |
-| `ship.png` | 80x48, 5x2 grid of 16x24 | Player ship; the "spin" is all 10 frames cycled. Used on the title screen; will be the gameplay ship in phase 3. |
-| `player_bullet.png` | 8x16 | Generated (`tools/generate_player_bullet.py`); the default player weapon, cyan to match the ship. |
-| `laser-bolts.png` | 32x32, 2x2 grid of 16x16 | Top row: round orb bolts (unused for now). Bottom row: elongated beam bolts -- the enemy-hit projectile shown in the enemy-destroyed.gif reference. |
-| `enemy-small.png` | 32x16, 2 frames of 16x16 | Small enemy, idle wobble animation. |
-| `explosion.png` | 80x16, 5 frames of 16x16 | Enemy death animation. |
-| `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. |
+| `ship.png` | 80x48, 5x2 grid of 16x24 | Player ship; the "spin" is all 10 frames cycled. Used on the title screen and as the gameplay ship (phase 3). |
+| `player_bullet.png` | 8x16 | Generated (`tools/generate_player_bullet.py`, gitignored); the default player weapon, cyan to match the ship. Not wired into gameplay yet. |
+| `enemy-small.png` | 32x16, 2 frames of 16x16 | Small enemy, idle wobble animation. Not wired into gameplay yet. |
+| `explosion.png` | 80x16, 5 frames of 16x16 | Enemy death animation. Not wired into gameplay yet. |
+| `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. Not wired into gameplay yet. |
+| `back.png` | 2048x1536 | User-provided source nebula/starfield image; kept for reference/reprocessing. |
+| `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. The phase 3 gameplay background. |
+| `title.mp3` | -- | Title screen music; loops, stops the instant Enter is pressed. |
+| `stage1.mp3` | -- | Gameplay music; loops at 40% volume so future sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
 
 ## Status
 
 - [x] Phase 1: Game skeleton
 - [x] Phase 2: Title screen
-- [ ] Phase 3: Player ship
+- [x] Phase 3: Player ship
 - [ ] Phase 4: Shooting
 - [ ] Phase 5: Enemies
 - [ ] Phase 6: Collision & health/lives

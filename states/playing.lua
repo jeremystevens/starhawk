@@ -56,11 +56,16 @@ local shipFrameTimer = 0
 local shipX, shipY = WIDTH / 2, HEIGHT - 100
 local shipVelX, shipVelY = 0, 0
 
+local music = love.audio.newSource("assets/stage1.mp3", "stream")
+music:setLooping(true)
+music:setVolume(0.4)  -- stays in the background so sound effects cut through
+
 function playing.enter()
     shipX, shipY = WIDTH / 2, HEIGHT - 100
     shipVelX, shipVelY = 0, 0
     shipFrameIndex = 1
     shipFrameTimer = 0
+    music:play()
 end
 
 -- Accelerate `value` toward `target` at `rate` per second, without
@@ -150,6 +155,7 @@ function playing.keypressed(key)
     -- Temporary debug trigger until phase 6 adds real collision/death --
     -- lets us confirm the playing -> game over transition works.
     if key == "escape" then
+        music:stop()
         changeState("gameover")
     end
 end
