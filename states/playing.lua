@@ -164,12 +164,12 @@ end
 local ENEMY_FRAME_W, ENEMY_FRAME_H = 16, 16
 local ENEMY_SCALE = 2
 local ENEMY_FRAME_DURATION = 0.3
-local ENEMY_FALL_SPEED = 120
+local ENEMY_FALL_SPEED = 215  -- too far below BG_SCROLL_SPEED and enemies visually lag the backdrop (look like they're drifting backward); too close and they close distance too fast to react to
 local ENEMY_DRIFT_AMPLITUDE = 40
 local ENEMY_DRIFT_FREQUENCY = 1.5
 local SPAWN_INTERVAL = 1.2
-local ENEMY_FIRE_MIN_INTERVAL = 1.5
-local ENEMY_FIRE_MAX_INTERVAL = 3.0
+local ENEMY_FIRE_MIN_INTERVAL = 2.2  -- bumped alongside ENEMY_FALL_SPEED -- faster-falling enemies are on screen less time, so give each one more breathing room between shots
+local ENEMY_FIRE_MAX_INTERVAL = 4.0
 
 -- Difficulty curve: enemy shots are aimed at a deliberately stale player
 -- position, less stale as this run goes on. Driven by kills for now since
