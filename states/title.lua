@@ -60,7 +60,7 @@ function title.draw()
 
     love.graphics.setFont(subtitleFont)
     love.graphics.setColor(0.6, 0.6, 0.6)
-    love.graphics.printf("A VERTICAL SCROLLING SHOOTER", 0, 230, WIDTH, "center")
+    love.graphics.printf("VENGEANCE FROM ABOVE", 0, 230, WIDTH, "center")
 
     if showPrompt then
         love.graphics.setFont(promptFont)
