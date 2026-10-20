@@ -42,6 +42,14 @@ The code already isolates this behind one function
 (`currentTrackingDelay()` in `states/playing.lua`) specifically so that
 swap is a small change later, not a rewrite.
 
+## Future Consideration: Turret Enemies Mounted on Structures
+
+Some 90s shmups attach actual gun turrets to the scrolling background
+structures (fire at the player as that section passes). Not built yet --
+the current structure pieces (see Decisions below) are purely decorative,
+no collision or behavior. Worth revisiting once there's a reason to add
+a second enemy type.
+
 ## Decisions
 
 - **Enemies**: start with a single enemy type (phase 5) to get spawning and
@@ -71,6 +79,15 @@ swap is a small change later, not a rewrite.
   (`updateShip`, `updateEnemies`, etc.). Keep an eye on function size
   going forward, and always confirm with a real `love .` launch, not
   just a syntax check.
+- **Background structures**: a smooth scrolling gradient alone doesn't
+  sell speed -- the eye needs concrete landmarks to track. Six
+  decorative (no collision) structure pieces -- truss, hull, pipes,
+  solar panels, antenna array, docking ring -- spawn one at a time, each
+  tall enough to take ~10s to fully scroll past, with a long gap between
+  spawns so one piece fully clears before the next appears (distinct
+  "flying past a structure, then open space again" stretches). Back
+  layer: drawn right after the nebula background, before stars or
+  anything else, so they never compete with gameplay.
 
 ## Assets
 
@@ -85,6 +102,12 @@ swap is a small change later, not a rewrite.
 | `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. The phase 3 gameplay background. |
 | `enemy_bullet.png` | 8x16 | Generated (`tools/generate_enemy_bullet.py`, gitignored); red/orange to read as hostile vs. the player's cyan bolts. Phase 6. |
 | `player_explosion.png` | 80x16, 5 frames of 16x16 | Generated (`tools/generate_player_explosion.py`, gitignored) by recoloring explosion.png's exact shape to the player's cyan palette. Plays on player death. Phase 6. |
+| `structure_truss.png` | 96x900 | Generated (`tools/generate_background_structures.py`, gitignored); lattice girder. Decorative back-layer scenery, no collision. |
+| `structure_hull.png` | 96x900 | Station hull/module segment with panel seams and lit windows. Same generator. |
+| `structure_pipes.png` | 96x900 | Parallel exterior conduits with flange rings. Same generator. |
+| `structure_solar_panels.png` | 160x900 | Central spine with alternating solar panel wings. Same generator. |
+| `structure_antenna.png` | 140x900 | Spine with alternating dish/antenna silhouettes. Same generator. |
+| `structure_docking_ring.png` | 120x900 | Hull body with circular docking-collar cutouts. Same generator. |
 | `title.mp3` | -- | Title screen music; loops, stops the instant Enter is pressed. |
 | `stage1.mp3` | -- | Gameplay music; loops at 40% volume so sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
 | `norm_bullet.wav` | -- | Fires each shot of the normal (no-powerup) player bullet. Phase 4. |

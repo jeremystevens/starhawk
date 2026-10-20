@@ -5,11 +5,54 @@ local WIDTH, HEIGHT = love.graphics.getWidth(), love.graphics.getHeight()
 -- Background: resized/mirrored from the user-provided back.png (see
 -- tools/generate_background.py history) -- native 800px width, seamless
 -- vertical loop via mirroring.
-local BG_SCROLL_SPEED = 40
+local BG_SCROLL_SPEED = 240
 local bgImage = love.graphics.newImage("assets/bg_space.png")
 bgImage:setFilter("linear", "linear")
 local _, bgHeight = bgImage:getDimensions()
 local bgOffset = 0
+
+-- Background structures: long station/truss/pipe silhouettes that drift
+-- down with the world, same speed as the nebula background. A smooth
+-- gradient scrolling fast still reads as static -- these give the eye
+-- concrete landmarks to track, which is what actually sells speed.
+-- Deliberately a back layer: drawn right after the nebula, before stars
+-- or anything else, so they never compete with gameplay.
+local STRUCTURE_SCALE = 2
+-- Pieces are tall enough now to take ~10s to fully scroll past at the
+-- current BG_SCROLL_SPEED -- the spawn gap needs to clear that so one
+-- piece fully exits before the next appears, giving distinct "flying
+-- past a structure, then open space again" stretches rather than
+-- overlapping pieces.
+local STRUCTURE_SPAWN_MIN_INTERVAL = 14.0
+local STRUCTURE_SPAWN_MAX_INTERVAL = 20.0
+
+local structureImages = {
+    love.graphics.newImage("assets/structure_truss.png"),
+    love.graphics.newImage("assets/structure_hull.png"),
+    love.graphics.newImage("assets/structure_pipes.png"),
+    love.graphics.newImage("assets/structure_solar_panels.png"),
+    love.graphics.newImage("assets/structure_antenna.png"),
+    love.graphics.newImage("assets/structure_docking_ring.png"),
+}
+for _, image in ipairs(structureImages) do
+    image:setFilter("nearest", "nearest")
+end
+
+local structures = {}
+local structureSpawnTimer = 0
+
+local function spawnStructure()
+    local image = structureImages[love.math.random(1, #structureImages)]
+    local imgW, imgH = image:getDimensions()
+    local drawW, drawH = imgW * STRUCTURE_SCALE, imgH * STRUCTURE_SCALE
+    table.insert(structures, {
+        image = image,
+        x = love.math.random(0, WIDTH - drawW),
+        y = -drawH,
+        drawW = drawW,
+        drawH = drawH,
+    })
+end
 
 -- Drifting, twinkling star layer -- same technique as the title screen's
 -- starfield, but faster (closer) with a twinkle so it reads as a distinct
@@ -20,7 +63,7 @@ for i = 1, NUM_STARS do
     stars[i] = {
         x = love.math.random(0, WIDTH),
         y = love.math.random(0, HEIGHT),
-        speed = love.math.random(80, 160),
+        speed = love.math.random(310, 500),
         size = love.math.random(1, 2),
         twinklePhase = love.math.random() * math.pi * 2,
         twinkleSpeed = love.math.random(2, 5),
@@ -287,6 +330,8 @@ function playing.enter()
     totalElapsedTime = 0
     positionHistory = {}
     killCount = 0
+    structures = {}
+    structureSpawnTimer = STRUCTURE_SPAWN_MIN_INTERVAL
     music:play()
 end
 
@@ -318,6 +363,23 @@ local function updateBackground(dt)
             star.x = love.math.random(0, WIDTH)
         end
         star.twinklePhase = star.twinklePhase + star.twinkleSpeed * dt
+    end
+end
+
+local function updateStructures(dt)
+    structureSpawnTimer = structureSpawnTimer - dt
+    if structureSpawnTimer <= 0 then
+        spawnStructure()
+        structureSpawnTimer = love.math.random() *
+            (STRUCTURE_SPAWN_MAX_INTERVAL - STRUCTURE_SPAWN_MIN_INTERVAL) + STRUCTURE_SPAWN_MIN_INTERVAL
+    end
+
+    for i = #structures, 1, -1 do
+        local structure = structures[i]
+        structure.y = structure.y + BG_SCROLL_SPEED * dt
+        if structure.y > HEIGHT then
+            table.remove(structures, i)
+        end
     end
 end
 
@@ -510,6 +572,7 @@ function playing.update(dt)
     recordPlayerPosition()
 
     updateBackground(dt)
+    updateStructures(dt)
     updateShip(dt)
     updatePlayerBullets(dt)
     updateEnemies(dt)
@@ -525,6 +588,14 @@ function playing.draw()
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(bgImage, 0, y)
         y = y + bgHeight
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    for _, structure in ipairs(structures) do
+        love.graphics.draw(
+            structure.image, structure.x, structure.y,
+            0, STRUCTURE_SCALE, STRUCTURE_SCALE
+        )
     end
 
     for _, star in ipairs(stars) do
