@@ -82,6 +82,66 @@ local function fireBullet()
     love.audio.play(bulletSound:clone())
 end
 
+-- Enemies: a single type for phase 5 (spawning, movement, collision with
+-- player bullets). Enemies shooting back is phase 6's job, alongside
+-- actual player damage.
+local ENEMY_FRAME_W, ENEMY_FRAME_H = 16, 16
+local ENEMY_SCALE = 2
+local ENEMY_FRAME_DURATION = 0.3
+local ENEMY_FALL_SPEED = 120
+local ENEMY_DRIFT_AMPLITUDE = 40
+local ENEMY_DRIFT_FREQUENCY = 1.5
+local SPAWN_INTERVAL = 1.2
+
+local enemyImage = love.graphics.newImage("assets/enemy-small.png")
+enemyImage:setFilter("nearest", "nearest")
+local enemyQuads = {}
+for col = 0, 1 do
+    table.insert(enemyQuads, love.graphics.newQuad(
+        col * ENEMY_FRAME_W, 0, ENEMY_FRAME_W, ENEMY_FRAME_H,
+        enemyImage:getDimensions()
+    ))
+end
+
+local enemies = {}
+local spawnTimer = 0
+
+local function spawnEnemy()
+    local halfW = (ENEMY_FRAME_W * ENEMY_SCALE) / 2
+    local baseX = love.math.random(halfW, WIDTH - halfW)
+    table.insert(enemies, {
+        baseX = baseX,
+        x = baseX,
+        y = -(ENEMY_FRAME_H * ENEMY_SCALE) / 2,
+        drift = love.math.random() * math.pi * 2,
+        frameIndex = 1,
+        frameTimer = 0,
+    })
+end
+
+-- Explosions: a one-shot (non-looping) playback of explosion.png's 5
+-- frames wherever an enemy was destroyed.
+local EXPLOSION_FRAME_W, EXPLOSION_FRAME_H = 16, 16
+local EXPLOSION_SCALE = 2
+local EXPLOSION_FRAME_DURATION = 0.06
+local EXPLOSION_FRAME_COUNT = 5
+
+local explosionImage = love.graphics.newImage("assets/explosion.png")
+explosionImage:setFilter("nearest", "nearest")
+local explosionQuads = {}
+for col = 0, EXPLOSION_FRAME_COUNT - 1 do
+    table.insert(explosionQuads, love.graphics.newQuad(
+        col * EXPLOSION_FRAME_W, 0, EXPLOSION_FRAME_W, EXPLOSION_FRAME_H,
+        explosionImage:getDimensions()
+    ))
+end
+
+local explosions = {}
+
+local function spawnExplosion(x, y)
+    table.insert(explosions, { x = x, y = y, frameIndex = 1, frameTimer = 0 })
+end
+
 function playing.enter()
     shipX, shipY = WIDTH / 2, HEIGHT - 100
     shipVelX, shipVelY = 0, 0
@@ -89,6 +149,9 @@ function playing.enter()
     shipFrameTimer = 0
     bullets = {}
     fireCooldownRemaining = 0
+    enemies = {}
+    spawnTimer = SPAWN_INTERVAL
+    explosions = {}
     music:play()
 end
 
@@ -163,6 +226,60 @@ function playing.update(dt)
             table.remove(bullets, i)
         end
     end
+
+    spawnTimer = spawnTimer - dt
+    if spawnTimer <= 0 then
+        spawnEnemy()
+        spawnTimer = SPAWN_INTERVAL
+    end
+
+    local enemyHalfW = (ENEMY_FRAME_W * ENEMY_SCALE) / 2
+    local enemyHalfH = (ENEMY_FRAME_H * ENEMY_SCALE) / 2
+    for i = #enemies, 1, -1 do
+        local enemy = enemies[i]
+        enemy.y = enemy.y + ENEMY_FALL_SPEED * dt
+        enemy.drift = enemy.drift + ENEMY_DRIFT_FREQUENCY * dt
+        enemy.x = enemy.baseX + math.sin(enemy.drift) * ENEMY_DRIFT_AMPLITUDE
+
+        enemy.frameTimer = enemy.frameTimer + dt
+        if enemy.frameTimer >= ENEMY_FRAME_DURATION then
+            enemy.frameTimer = enemy.frameTimer - ENEMY_FRAME_DURATION
+            enemy.frameIndex = enemy.frameIndex % #enemyQuads + 1
+        end
+
+        if enemy.y - enemyHalfH > HEIGHT then
+            table.remove(enemies, i)
+        end
+    end
+
+    -- Bullet vs. enemy collision: simple AABB overlap test.
+    local bulletHalfW, bulletHalfH = BULLET_W / 2, BULLET_H / 2
+    for bi = #bullets, 1, -1 do
+        local bullet = bullets[bi]
+        for ei = #enemies, 1, -1 do
+            local enemy = enemies[ei]
+            local overlapX = math.abs(bullet.x - enemy.x) < (bulletHalfW + enemyHalfW)
+            local overlapY = math.abs(bullet.y - enemy.y) < (bulletHalfH + enemyHalfH)
+            if overlapX and overlapY then
+                spawnExplosion(enemy.x, enemy.y)
+                table.remove(enemies, ei)
+                table.remove(bullets, bi)
+                break
+            end
+        end
+    end
+
+    for i = #explosions, 1, -1 do
+        local explosion = explosions[i]
+        explosion.frameTimer = explosion.frameTimer + dt
+        if explosion.frameTimer >= EXPLOSION_FRAME_DURATION then
+            explosion.frameTimer = explosion.frameTimer - EXPLOSION_FRAME_DURATION
+            explosion.frameIndex = explosion.frameIndex + 1
+            if explosion.frameIndex > EXPLOSION_FRAME_COUNT then
+                table.remove(explosions, i)
+            end
+        end
+    end
 end
 
 function playing.draw()
@@ -180,8 +297,30 @@ function playing.draw()
     end
 
     love.graphics.setColor(1, 1, 1)
+    local enemyDrawW = ENEMY_FRAME_W * ENEMY_SCALE
+    local enemyDrawH = ENEMY_FRAME_H * ENEMY_SCALE
+    for _, enemy in ipairs(enemies) do
+        love.graphics.draw(
+            enemyImage, enemyQuads[enemy.frameIndex],
+            enemy.x - enemyDrawW / 2, enemy.y - enemyDrawH / 2,
+            0, ENEMY_SCALE, ENEMY_SCALE
+        )
+    end
+
+    love.graphics.setColor(1, 1, 1)
     for _, bullet in ipairs(bullets) do
         love.graphics.draw(bulletImage, bullet.x - BULLET_W / 2, bullet.y - BULLET_H / 2)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    local explosionDrawW = EXPLOSION_FRAME_W * EXPLOSION_SCALE
+    local explosionDrawH = EXPLOSION_FRAME_H * EXPLOSION_SCALE
+    for _, explosion in ipairs(explosions) do
+        love.graphics.draw(
+            explosionImage, explosionQuads[explosion.frameIndex],
+            explosion.x - explosionDrawW / 2, explosion.y - explosionDrawH / 2,
+            0, EXPLOSION_SCALE, EXPLOSION_SCALE
+        )
     end
 
     love.graphics.setColor(1, 1, 1)
