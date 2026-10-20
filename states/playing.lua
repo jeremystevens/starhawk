@@ -103,7 +103,7 @@ local shipVelX, shipVelY = 0, 0
 -- view of "where the player is" (see currentTrackingDelay() below) rather
 -- than always knowing the real-time position -- that's what keeps early
 -- enemies from feeling perfectly accurate.
-local POSITION_HISTORY_MAX_AGE = 3.0  -- keep more than the largest delay we'll ever use
+local POSITION_HISTORY_MAX_AGE = 3.5  -- keep more than the largest delay we'll ever use
 local totalElapsedTime = 0
 local positionHistory = {}
 
@@ -170,15 +170,14 @@ local ENEMY_DRIFT_FREQUENCY = 1.5
 local SPAWN_INTERVAL = 1.2
 local ENEMY_FIRE_MIN_INTERVAL = 1.5
 local ENEMY_FIRE_MAX_INTERVAL = 3.0
-local ENEMY_HOMING_SPEED = 30  -- px/s the drift centerline nudges toward the player
 
--- Difficulty curve: enemies track a deliberately stale player position,
--- less stale as this run goes on. Driven by kills for now since there's
--- no stage/level system yet -- once one exists, this should be driven by
--- level number instead; everything else (getDelayedPlayerPosition, the
--- homing/aim code below) stays the same either way.
-local MAX_TRACKING_DELAY = 2.0      -- seconds, at 0 kills
-local TRACKING_DELAY_PER_KILL = 0.1 -- seconds removed per kill (reaches 0 at 20 kills)
+-- Difficulty curve: enemy shots are aimed at a deliberately stale player
+-- position, less stale as this run goes on. Driven by kills for now since
+-- there's no stage/level system yet -- once one exists, this should be
+-- driven by level number instead; everything else (getDelayedPlayerPosition,
+-- the aim code in enemyFireBullet) stays the same either way.
+local MAX_TRACKING_DELAY = 3.0      -- seconds, at 0 kills
+local TRACKING_DELAY_PER_KILL = 0.1 -- seconds removed per kill (reaches 0 at 30 kills)
 local killCount = 0
 
 local function currentTrackingDelay()
@@ -442,19 +441,15 @@ local function updateEnemies(dt)
         spawnTimer = SPAWN_INTERVAL
     end
 
-    local enemyHalfW = (ENEMY_FRAME_W * ENEMY_SCALE) / 2
     local enemyHalfH = (ENEMY_FRAME_H * ENEMY_SCALE) / 2
     for i = #enemies, 1, -1 do
         local enemy = enemies[i]
         enemy.y = enemy.y + ENEMY_FALL_SPEED * dt
 
-        -- Gently nudge the drift centerline toward the player's delayed
-        -- position -- the sine wiggle still rides on top of this, so it
-        -- reads as "drifting toward where they were" rather than a hard lock.
-        local targetX = getDelayedPlayerPosition(currentTrackingDelay())
-        enemy.baseX = approach(enemy.baseX, targetX, ENEMY_HOMING_SPEED, dt)
-        enemy.baseX = math.max(enemyHalfW, math.min(WIDTH - enemyHalfW, enemy.baseX))
-
+        -- No horizontal homing -- this type just falls straight down with
+        -- a sine wiggle around its spawn X. It still lines up aimed shots
+        -- via the delayed position below; an actively-homing "hunter" type
+        -- is a future second enemy, not this one (see PLANNING.md).
         enemy.drift = enemy.drift + ENEMY_DRIFT_FREQUENCY * dt
         enemy.x = enemy.baseX + math.sin(enemy.drift) * ENEMY_DRIFT_AMPLITUDE
 

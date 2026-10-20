@@ -50,6 +50,23 @@ the current structure pieces (see Decisions below) are purely decorative,
 no collision or behavior. Worth revisiting once there's a reason to add
 a second enemy type.
 
+## Future Consideration: A Homing "Hunter" Enemy Type
+
+The original enemy briefly nudged its drift centerline toward the
+player's delayed position (on top of its aimed shots), but that stacked
+with aimed fire and made the single enemy type too punishing -- players
+were getting hit a lot. Removed; current enemy just falls with a
+sine-wave drift around its spawn X and lines up aimed shots only. The
+homing idea itself is fine -- it belongs on a distinct second "hunter"
+type later, separate from this "shooter" type.
+
+## Future Consideration: More/Reworked Background Structures
+
+Noted for later, not active work: possibly add more structure pieces
+beyond the current six, and/or revisit the shapes of the existing ones
+(truss, hull, pipes, solar panels, antenna array, docking ring) now that
+they have the dark-edge/mid/highlight shading pass.
+
 ## Decisions
 
 - **Enemies**: start with a single enemy type (phase 5) to get spawning and
@@ -68,10 +85,12 @@ a second enemy type.
   - Orange gem, silver ring -> **Spread Shot**
   - Red gem, silver ring -> **Rapid Fire**
 - **Lives & difficulty** (phase 6): 3 lives, 2s invincibility (with a
-  flicker) after respawn. Enemies track a deliberately stale player
-  position -- 2.0s delay at 0 kills, shrinking 0.1s per kill to real-time
-  by 20 kills -- affecting both their aim and a gentle homing drift. See
-  the future consideration above.
+  flicker) after respawn. Enemy shots are aimed at a deliberately stale
+  player position -- 3.0s delay at 0 kills, shrinking 0.1s per kill to
+  real-time by 30 kills. Enemies themselves just fall with a sine-wave
+  drift around their spawn X, no homing -- see the "hunter" future
+  consideration above. See also the difficulty-by-level future
+  consideration above.
 - **LuaJIT upvalue limit**: a single function can reference at most 60
   local upvalues (LOVE runs LuaJIT, not stock Lua -- `luac5.4 -p` won't
   catch this). `playing.update` hit this once it grew to touch most of
