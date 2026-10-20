@@ -33,6 +33,15 @@ will need to know which stage it's on and load that stage's music (and
 probably its background/enemy set) accordingly, rather than one fixed
 set of assets for the whole "playing" state.
 
+## Future Consideration: Difficulty Driven by Level, Not Kills
+
+Phase 6's enemy-tracking delay (see Decisions below) currently shrinks
+based on kills this run, since there's no stage/level system yet. The
+intent is for it to be driven by level number once stages exist instead.
+The code already isolates this behind one function
+(`currentTrackingDelay()` in `states/playing.lua`) specifically so that
+swap is a small change later, not a rewrite.
+
 ## Decisions
 
 - **Enemies**: start with a single enemy type (phase 5) to get spawning and
@@ -50,6 +59,18 @@ set of assets for the whole "playing" state.
   - Dark teal gem, orange ring -> **Shield**
   - Orange gem, silver ring -> **Spread Shot**
   - Red gem, silver ring -> **Rapid Fire**
+- **Lives & difficulty** (phase 6): 3 lives, 2s invincibility (with a
+  flicker) after respawn. Enemies track a deliberately stale player
+  position -- 2.0s delay at 0 kills, shrinking 0.1s per kill to real-time
+  by 20 kills -- affecting both their aim and a gentle homing drift. See
+  the future consideration above.
+- **LuaJIT upvalue limit**: a single function can reference at most 60
+  local upvalues (LOVE runs LuaJIT, not stock Lua -- `luac5.4 -p` won't
+  catch this). `playing.update` hit this once it grew to touch most of
+  the module; fixed by splitting it into focused per-system functions
+  (`updateShip`, `updateEnemies`, etc.). Keep an eye on function size
+  going forward, and always confirm with a real `love .` launch, not
+  just a syntax check.
 
 ## Assets
 
@@ -62,11 +83,13 @@ set of assets for the whole "playing" state.
 | `power-up.png` | 32x32, 2x2 grid of 16x16 | Four power-up pickups; see mapping above. Not wired into gameplay yet. |
 | `back.png` | 2048x1536 | User-provided source nebula/starfield image; kept for reference/reprocessing. |
 | `bg_space.png` | 800x1200 | `back.png` resized to the game's native width, seamless vertical loop via mirroring. The phase 3 gameplay background. |
+| `enemy_bullet.png` | 8x16 | Generated (`tools/generate_enemy_bullet.py`, gitignored); red/orange to read as hostile vs. the player's cyan bolts. Phase 6. |
+| `player_explosion.png` | 80x16, 5 frames of 16x16 | Generated (`tools/generate_player_explosion.py`, gitignored) by recoloring explosion.png's exact shape to the player's cyan palette. Plays on player death. Phase 6. |
 | `title.mp3` | -- | Title screen music; loops, stops the instant Enter is pressed. |
 | `stage1.mp3` | -- | Gameplay music; loops at 40% volume so sound effects can cut through. Will need a real stage/level system once more stages exist (see note above). |
 | `norm_bullet.wav` | -- | Fires each shot of the normal (no-powerup) player bullet. Phase 4. |
-| `enemy1_bullet.wav` | -- | The first enemy type's shot sound. Not wired in yet -- deliberately saved for phase 6, alongside real player damage. |
-| `enemy1_explode.wav` | -- | Plays when an enemy1 is destroyed. Phase 5. |
+| `enemy1_bullet.wav` | -- | The first enemy type's shot sound. Phase 6. |
+| `enemy1_explode.wav` | -- | Plays when an enemy1 is destroyed, or when the player is hit. Phase 5/6. |
 
 ## Status
 
@@ -75,7 +98,7 @@ set of assets for the whole "playing" state.
 - [x] Phase 3: Player ship
 - [x] Phase 4: Shooting
 - [x] Phase 5: Enemies
-- [ ] Phase 6: Collision & health/lives
+- [x] Phase 6: Collision & health/lives
 - [ ] Phase 7: Score & HUD
 - [ ] Phase 8: Game over screen
 - [ ] Phase 9: Polish
