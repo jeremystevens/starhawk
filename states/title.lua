@@ -29,6 +29,9 @@ end
 local shipFrameIndex = 1
 local shipFrameTimer = 0
 
+local music = love.audio.newSource("assets/title.mp3", "stream")
+music:setLooping(true)
+
 -- A lightweight drifting starfield for atmosphere -- not the gameplay
 -- scrolling background (that's its own thing, later), just title-screen
 -- ambiance using plain rectangles rather than sprite assets.
@@ -50,6 +53,7 @@ local BLINK_INTERVAL = 0.5
 function title.enter()
     blinkTimer = 0
     showPrompt = true
+    music:play()
 end
 
 function title.update(dt)
@@ -110,6 +114,7 @@ end
 
 function title.keypressed(key)
     if key == "return" then
+        music:stop()
         changeState("playing")
     end
 end
