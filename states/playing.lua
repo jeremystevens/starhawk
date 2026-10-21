@@ -180,6 +180,12 @@ local MAX_TRACKING_DELAY = 3.0      -- seconds, at 0 kills
 local TRACKING_DELAY_PER_KILL = 0.1 -- seconds removed per kill (reaches 0 at 30 kills)
 local killCount = 0
 
+-- Score: flat points per kill for now -- isolated behind one constant so
+-- a future second enemy type can carry a different value without
+-- touching the collision code that awards it.
+local POINTS_PER_KILL = 100
+local score = 0
+
 local function currentTrackingDelay()
     return math.max(0, MAX_TRACKING_DELAY - killCount * TRACKING_DELAY_PER_KILL)
 end
@@ -287,6 +293,14 @@ local invincibleRemaining = 0
 local flickerTimer = 0
 local shipVisible = true
 
+-- HUD: score/kills text plus a row of small ship icons for lives --
+-- same ship.png used on the title screen, just smaller and a single
+-- static frame (animating every icon would be too busy at a glance).
+local HUD_MARGIN = 12
+local HUD_SHIP_SCALE = 1
+local HUD_ICON_SPACING = (SHIP_FRAME_W * HUD_SHIP_SCALE) + 6
+local hudFont = love.graphics.newFont(16)
+
 local function respawnShip()
     shipX, shipY = WIDTH / 2, HEIGHT - 100
     shipVelX, shipVelY = 0, 0
@@ -329,6 +343,7 @@ function playing.enter()
     totalElapsedTime = 0
     positionHistory = {}
     killCount = 0
+    score = 0
     structures = {}
     structureSpawnTimer = STRUCTURE_SPAWN_MIN_INTERVAL
     music:play()
@@ -525,6 +540,7 @@ local function updateCollisions()
             spawnExplosion(enemy.x, enemy.y)
             table.remove(enemies, i)
             killCount = killCount + 1
+            score = score + POINTS_PER_KILL
             playerHit()
         end
     end
@@ -542,6 +558,7 @@ local function updateCollisions()
                 table.remove(enemies, ei)
                 table.remove(bullets, bi)
                 killCount = killCount + 1
+                score = score + POINTS_PER_KILL
                 break
             end
         end
@@ -641,9 +658,17 @@ function playing.draw()
         )
     end
 
-    -- Temporary readout -- phase 7 replaces this with a real HUD.
+    -- HUD: score/kills top-left, lives as small ship icons top-right.
+    love.graphics.setFont(hudFont)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("LIVES: " .. lives .. "   KILLS: " .. killCount, 10, 10)
+    love.graphics.print(string.format("SCORE  %06d", score), HUD_MARGIN, HUD_MARGIN)
+    love.graphics.print(string.format("KILLS  %03d", killCount), HUD_MARGIN, HUD_MARGIN + 20)
+
+    love.graphics.setColor(1, 1, 1)
+    for i = 1, lives do
+        local x = WIDTH - HUD_MARGIN - i * HUD_ICON_SPACING
+        love.graphics.draw(shipImage, shipQuads[1], x, HUD_MARGIN, 0, HUD_SHIP_SCALE, HUD_SHIP_SCALE)
+    end
 end
 
 return playing

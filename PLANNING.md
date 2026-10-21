@@ -113,6 +113,13 @@ they have the dark-edge/mid/highlight shading pass.
   preferring black against the structures/stars regardless. `bg_space.png`
   stays loaded for a future stage once there's a real per-stage
   background system (see the per-stage music future consideration).
+- **Score & HUD** (phase 7): flat 100 points per kill, isolated behind
+  `POINTS_PER_KILL` so a future second enemy type can be worth a
+  different amount without touching collision code. HUD shows
+  `SCORE`/`KILLS` as text top-left, and lives as a row of small static
+  ship icons top-right (ship.png, same sprite as the title screen, just
+  smaller and not spin-animated -- animating every icon read as too busy
+  at a glance). Replaces the temporary "LIVES: N  KILLS: N" readout.
 
 ## Assets
 
@@ -147,7 +154,7 @@ they have the dark-edge/mid/highlight shading pass.
 - [x] Phase 4: Shooting
 - [x] Phase 5: Enemies
 - [x] Phase 6: Collision & health/lives
-- [ ] Phase 7: Score & HUD
+- [x] Phase 7: Score & HUD
 - [ ] Phase 8: Game over screen
 - [ ] Phase 9: Polish
 - [ ] Phase 10: Power-ups
