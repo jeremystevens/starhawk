@@ -4,6 +4,7 @@ local WIDTH, HEIGHT = love.graphics.getWidth(), love.graphics.getHeight()
 
 local titleFont = love.graphics.newFont(56)
 local subtitleFont = love.graphics.newFont(14)
+local creditFont = love.graphics.newFont(12)
 local promptFont = love.graphics.newFont(20)
 
 -- Spinning ship display, under the title.
@@ -108,6 +109,12 @@ function title.draw()
         love.graphics.setColor(1, 1, 1)
         love.graphics.printf("PRESS ENTER TO START", 0, 370, WIDTH, "center")
     end
+
+    -- Credit, tucked in the corner as a footer rather than stacked into
+    -- the main title/tagline/ship/prompt flow -- keeps that stack clean.
+    love.graphics.setFont(creditFont)
+    love.graphics.setColor(0.4, 0.4, 0.4)
+    love.graphics.printf("CREATED BY JEREMY STEVENS", 0, HEIGHT - 24, WIDTH - 12, "right")
 
     love.graphics.setColor(1, 1, 1)
 end

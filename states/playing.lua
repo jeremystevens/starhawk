@@ -244,11 +244,64 @@ playerExplosionImage:setFilter("nearest", "nearest")
 local explosions = {}
 local explosionSound = love.audio.newSource("assets/enemy1_explode.wav", "static")
 
+-- Particle burst layered on top of the sprite-sheet explosion animation --
+-- small bright sparks plus a few slower debris chunks that fall with
+-- gravity, both fading out over their lifetime. Pure rectangles, no new
+-- art needed. Colors follow the project's existing hostile/friendly
+-- language (enemy bullets red/orange, player stuff cyan).
+local SPARK_COUNT = 18
+local DEBRIS_COUNT = 7
+local DEBRIS_GRAVITY = 260  -- px/s^2, debris only -- gives chunks weight, sparks stay weightless
+local ENEMY_SPARK_COLOR = { 1, 0.75, 0.25 }
+local ENEMY_DEBRIS_COLOR = { 0.45, 0.32, 0.18 }
+local PLAYER_SPARK_COLOR = { 0.5, 0.95, 1 }
+local PLAYER_DEBRIS_COLOR = { 0.25, 0.55, 0.65 }
+
+local particles = {}
+
+local function spawnParticles(x, y, isPlayer)
+    local sparkColor = isPlayer and PLAYER_SPARK_COLOR or ENEMY_SPARK_COLOR
+    local debrisColor = isPlayer and PLAYER_DEBRIS_COLOR or ENEMY_DEBRIS_COLOR
+
+    for i = 1, SPARK_COUNT do
+        local angle = love.math.random() * math.pi * 2
+        local speed = love.math.random(100, 280)
+        local life = love.math.random() * 0.3 + 0.3
+        table.insert(particles, {
+            kind = "spark",
+            x = x, y = y,
+            vx = math.cos(angle) * speed,
+            vy = math.sin(angle) * speed,
+            size = love.math.random(2, 3),
+            color = sparkColor,
+            life = life, maxLife = life,
+            drag = 2.5,
+        })
+    end
+
+    for i = 1, DEBRIS_COUNT do
+        local angle = love.math.random() * math.pi * 2
+        local speed = love.math.random(40, 140)
+        local life = love.math.random() * 0.35 + 0.45
+        table.insert(particles, {
+            kind = "debris",
+            x = x, y = y,
+            vx = math.cos(angle) * speed,
+            vy = math.sin(angle) * speed,
+            size = love.math.random(3, 6),
+            color = debrisColor,
+            life = life, maxLife = life,
+            drag = 1.0,
+        })
+    end
+end
+
 local function spawnExplosion(x, y, image)
     table.insert(explosions, {
         x = x, y = y, image = image or explosionImage,
         frameIndex = 1, frameTimer = 0,
     })
+    spawnParticles(x, y, image == playerExplosionImage)
     love.audio.play(explosionSound:clone())
 end
 
@@ -335,6 +388,7 @@ function playing.enter()
     enemies = {}
     spawnTimer = SPAWN_INTERVAL
     explosions = {}
+    particles = {}
     enemyBullets = {}
     lives = START_LIVES
     invincibleRemaining = 0
@@ -579,6 +633,23 @@ local function updateExplosions(dt)
     end
 end
 
+local function updateParticles(dt)
+    for i = #particles, 1, -1 do
+        local p = particles[i]
+        p.vx = p.vx - p.vx * p.drag * dt
+        p.vy = p.vy - p.vy * p.drag * dt
+        if p.kind == "debris" then
+            p.vy = p.vy + DEBRIS_GRAVITY * dt
+        end
+        p.x = p.x + p.vx * dt
+        p.y = p.y + p.vy * dt
+        p.life = p.life - dt
+        if p.life <= 0 then
+            table.remove(particles, i)
+        end
+    end
+end
+
 function playing.update(dt)
     totalElapsedTime = totalElapsedTime + dt
     recordPlayerPosition()
@@ -592,6 +663,7 @@ function playing.update(dt)
     updateInvincibility(dt)
     updateCollisions()
     updateExplosions(dt)
+    updateParticles(dt)
 end
 
 function playing.draw()
@@ -645,6 +717,12 @@ function playing.draw()
             explosion.x - explosionDrawW / 2, explosion.y - explosionDrawH / 2,
             0, EXPLOSION_SCALE, EXPLOSION_SCALE
         )
+    end
+
+    for _, p in ipairs(particles) do
+        local alpha = math.max(0, p.life / p.maxLife)
+        love.graphics.setColor(p.color[1], p.color[2], p.color[3], alpha)
+        love.graphics.rectangle("fill", p.x - p.size / 2, p.y - p.size / 2, p.size, p.size)
     end
 
     if shipVisible then

@@ -128,6 +128,18 @@ they have the dark-edge/mid/highlight shading pass.
   red/orange instead of cyan. `gameover.mp3` (~11s) plays once on entry
   as a "static" source, not looped like title.mp3/stage1.mp3 -- it's a
   sting, not a loop.
+- **Explosion particles** (phase 9 polish): every explosion (enemy or
+  player) now also bursts a handful of plain-rectangle particles --
+  bright sparks (weightless, fade fast) plus a few slower debris chunks
+  (affected by gravity) -- layered on top of the existing sprite-sheet
+  explosion animation. No new art; colors follow the project's existing
+  hostile/friendly language (orange/red for enemies, cyan for the
+  player, matching the bullet colors).
+- **Title screen credit**: "CREATED BY JEREMY STEVENS" lives as a small,
+  dim, right-aligned footer in the bottom corner -- tried it stacked
+  between the ship and the "PRESS ENTER" prompt first, but that made the
+  whole title/tagline/ship/prompt column feel crowded, so it moved out
+  to the corner instead.
 
 ## Assets
 
