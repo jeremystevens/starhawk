@@ -321,7 +321,7 @@ local function playerHit()
         respawnShip()
     else
         music:stop()
-        changeState("gameover")
+        changeState("gameover", score, killCount)
     end
 end
 

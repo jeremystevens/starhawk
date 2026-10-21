@@ -120,6 +120,14 @@ they have the dark-edge/mid/highlight shading pass.
   ship icons top-right (ship.png, same sprite as the title screen, just
   smaller and not spin-animated -- animating every icon read as too busy
   at a glance). Replaces the temporary "LIVES: N  KILLS: N" readout.
+- **Game over screen** (phase 8): shows final score and kill count,
+  passed from `playing.lua` via `changeState("gameover", score,
+  killCount)` -- `changeState` now forwards any extra args straight to
+  the target state's `enter()`. Visually mirrors the title screen
+  (drifting starfield, drop-shadow logo text, blinking prompt) but in
+  red/orange instead of cyan. `gameover.mp3` (~11s) plays once on entry
+  as a "static" source, not looped like title.mp3/stage1.mp3 -- it's a
+  sting, not a loop.
 
 ## Assets
 
@@ -145,6 +153,7 @@ they have the dark-edge/mid/highlight shading pass.
 | `norm_bullet.wav` | -- | Fires each shot of the normal (no-powerup) player bullet. Phase 4. |
 | `enemy1_bullet.wav` | -- | The first enemy type's shot sound. Phase 6. |
 | `enemy1_explode.wav` | -- | Plays when an enemy1 is destroyed, or when the player is hit. Phase 5/6. |
+| `gameover.mp3` | ~11s | One-shot sting, not looped -- plays once when the game over screen is entered. Phase 8. |
 
 ## Status
 
@@ -155,6 +164,6 @@ they have the dark-edge/mid/highlight shading pass.
 - [x] Phase 5: Enemies
 - [x] Phase 6: Collision & health/lives
 - [x] Phase 7: Score & HUD
-- [ ] Phase 8: Game over screen
+- [x] Phase 8: Game over screen
 - [ ] Phase 9: Polish
 - [ ] Phase 10: Power-ups

@@ -8,10 +8,10 @@ local currentState = nil
 
 -- Global by design: each state module calls this to request a transition
 -- without needing a reference back to main.lua.
-function changeState(name)
+function changeState(name, ...)
     currentState = states[name]
     if currentState.enter then
-        currentState.enter()
+        currentState.enter(...)
     end
 end
 
