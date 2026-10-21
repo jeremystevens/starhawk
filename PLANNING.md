@@ -140,6 +140,19 @@ they have the dark-edge/mid/highlight shading pass.
   between the ship and the "PRESS ENTER" prompt first, but that made the
   whole title/tagline/ship/prompt column feel crowded, so it moved out
   to the corner instead.
+- **More SFX polish**: the player's own death reuses enemy1_explode.wav
+  pitched down (0.65x) so it reads heavier than a regular enemy kill;
+  every regular enemy kill now also gets a small random pitch jitter
+  (0.92x-1.08x) so repeated kills don't sound like the exact same sample
+  looping, same idea applied to both bullet-fire sounds (0.95x-1.05x).
+  Title/game-over "press enter" transitions also play a confirm blip --
+  no dedicated UI sound exists yet, so it reuses norm_bullet.wav pitched
+  down (0.8x) as a stand-in rather than staying silent.
+- **Hit feedback**: taking a hit now also triggers a brief (0.15s)
+  full-screen red flash and a small screen shake, both driven by the
+  same decaying timer (`hitFlashRemaining`) so they fade together. Only
+  the game world shakes -- the HUD is drawn after an explicit
+  push/translate/pop so score/lives text stays put and readable.
 
 ## Assets
 

@@ -33,6 +33,11 @@ local shipFrameTimer = 0
 local music = love.audio.newSource("assets/title.mp3", "stream")
 music:setLooping(true)
 
+-- No dedicated UI sound yet -- reuses the player bullet sfx, pitched down,
+-- as a stand-in "confirm" blip rather than leaving the transition silent.
+local confirmSound = love.audio.newSource("assets/norm_bullet.wav", "static")
+confirmSound:setPitch(0.8)
+
 -- A lightweight drifting starfield for atmosphere -- not the gameplay
 -- scrolling background (that's its own thing, later), just title-screen
 -- ambiance using plain rectangles rather than sprite assets.
@@ -122,6 +127,7 @@ end
 function title.keypressed(key)
     if key == "return" then
         music:stop()
+        love.audio.play(confirmSound:clone())
         changeState("playing")
     end
 end

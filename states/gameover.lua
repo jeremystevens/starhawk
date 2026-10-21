@@ -11,6 +11,11 @@ local promptFont = love.graphics.newFont(20)
 -- short and only ever one copy plays at a time.
 local music = love.audio.newSource("assets/gameover.mp3", "static")
 
+-- No dedicated UI sound yet -- reuses the player bullet sfx, pitched down,
+-- as a stand-in "confirm" blip rather than leaving the transition silent.
+local confirmSound = love.audio.newSource("assets/norm_bullet.wav", "static")
+confirmSound:setPitch(0.8)
+
 -- A lightweight drifting starfield, same technique as the title screen.
 local NUM_STARS = 60
 local stars = {}
@@ -90,6 +95,7 @@ end
 function gameover.keypressed(key)
     if key == "return" then
         music:stop()
+        love.audio.play(confirmSound:clone())
         changeState("title")
     end
 end

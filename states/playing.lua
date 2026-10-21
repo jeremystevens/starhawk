@@ -154,8 +154,12 @@ local function fireBullet()
         x = shipX,
         y = shipY - (SHIP_FRAME_H * SHIP_SCALE) / 2,
     })
-    -- Cloned so overlapping shots don't cut each other's sound off.
-    love.audio.play(bulletSound:clone())
+    -- Cloned so overlapping shots don't cut each other's sound off; a
+    -- slight random pitch keeps rapid-fire from sounding like a machine-gun
+    -- loop of the exact same sample.
+    local sound = bulletSound:clone()
+    sound:setPitch(love.math.random() * 0.1 + 0.95)
+    love.audio.play(sound)
 end
 
 -- Enemies: a single type for phase 5 (spawning, movement, collision with
@@ -296,13 +300,25 @@ local function spawnParticles(x, y, isPlayer)
     end
 end
 
+local PLAYER_EXPLOSION_PITCH = 0.65  -- deeper/heavier than the enemy explosion, no new asset needed
+
 local function spawnExplosion(x, y, image)
+    local isPlayer = image == playerExplosionImage
     table.insert(explosions, {
         x = x, y = y, image = image or explosionImage,
         frameIndex = 1, frameTimer = 0,
     })
-    spawnParticles(x, y, image == playerExplosionImage)
-    love.audio.play(explosionSound:clone())
+    spawnParticles(x, y, isPlayer)
+
+    local sound = explosionSound:clone()
+    if isPlayer then
+        sound:setPitch(PLAYER_EXPLOSION_PITCH)
+    else
+        -- Slight random pitch per enemy kill -- otherwise every kill in a
+        -- row sounds like the exact same sample looping.
+        sound:setPitch(love.math.random() * 0.16 + 0.92)
+    end
+    love.audio.play(sound)
 end
 
 -- Enemy bullets: fired by each enemy on its own timer. Red/orange so
@@ -332,7 +348,9 @@ local function enemyFireBullet(enemy)
         vx = (dx / length) * ENEMY_BULLET_SPEED,
         vy = (dy / length) * ENEMY_BULLET_SPEED,
     })
-    love.audio.play(enemyBulletSound:clone())
+    local sound = enemyBulletSound:clone()
+    sound:setPitch(love.math.random() * 0.1 + 0.95)
+    love.audio.play(sound)
 end
 
 -- Player lives, invincibility after respawn (with a flicker so it's
@@ -345,6 +363,14 @@ local lives = START_LIVES
 local invincibleRemaining = 0
 local flickerTimer = 0
 local shipVisible = true
+
+-- A brief full-screen red flash plus a small screen shake on the frame the
+-- player takes a hit -- cheap "you got hit" feedback on top of the
+-- explosion/invincibility flicker, both driven by the same decaying timer.
+local HIT_FLASH_DURATION = 0.15
+local HIT_FLASH_MAX_ALPHA = 0.35
+local HIT_SHAKE_MAX_OFFSET = 6  -- px
+local hitFlashRemaining = 0
 
 -- HUD: score/kills text plus a row of small ship icons for lives --
 -- same ship.png used on the title screen, just smaller and a single
@@ -369,6 +395,7 @@ local function playerHit()
 
     spawnExplosion(shipX, shipY, playerExplosionImage)
     lives = lives - 1
+    hitFlashRemaining = HIT_FLASH_DURATION
 
     if lives > 0 then
         respawnShip()
@@ -394,6 +421,7 @@ function playing.enter()
     invincibleRemaining = 0
     flickerTimer = 0
     shipVisible = true
+    hitFlashRemaining = 0
     totalElapsedTime = 0
     positionHistory = {}
     killCount = 0
@@ -567,6 +595,10 @@ local function updateInvincibility(dt)
     end
 end
 
+local function updateHitFlash(dt)
+    hitFlashRemaining = math.max(0, hitFlashRemaining - dt)
+end
+
 local function updateCollisions()
     local enemyHalfW = (ENEMY_FRAME_W * ENEMY_SCALE) / 2
     local enemyHalfH = (ENEMY_FRAME_H * ENEMY_SCALE) / 2
@@ -664,9 +696,22 @@ function playing.update(dt)
     updateCollisions()
     updateExplosions(dt)
     updateParticles(dt)
+    updateHitFlash(dt)
 end
 
 function playing.draw()
+    -- Screen shake rides the same hit-flash timer as the red overlay below
+    -- -- both are driven by "how recently did the player get hit", so they
+    -- decay together. Only the world shakes; the HUD is pushed/popped back
+    -- out before it draws, so score/lives stay readable.
+    local shakeFraction = hitFlashRemaining / HIT_FLASH_DURATION
+    local shakeOffset = shakeFraction * HIT_SHAKE_MAX_OFFSET
+    local shakeX = (love.math.random() * 2 - 1) * shakeOffset
+    local shakeY = (love.math.random() * 2 - 1) * shakeOffset
+
+    love.graphics.push()
+    love.graphics.translate(shakeX, shakeY)
+
     -- Plain black backdrop for stage 1 -- reads cleaner against the
     -- structures/stars than the nebula image did. Later stages may bring
     -- bgImage back once there's a real per-stage background system.
@@ -734,6 +779,13 @@ function playing.draw()
             shipX - shipDrawW / 2, shipY - shipDrawH / 2,
             0, SHIP_SCALE, SHIP_SCALE
         )
+    end
+
+    love.graphics.pop()
+
+    if hitFlashRemaining > 0 then
+        love.graphics.setColor(1, 0.15, 0.1, shakeFraction * HIT_FLASH_MAX_ALPHA)
+        love.graphics.rectangle("fill", 0, 0, WIDTH, HEIGHT)
     end
 
     -- HUD: score/kills top-left, lives as small ship icons top-right.
